@@ -90,10 +90,6 @@ function proxy(uri, req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'origin,authorization,accept,content-type')
   res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
-  // required for GET/HEAD requests, they otherwise would not pipe properly
-  if (req.method === 'GET') {
-    req.headers['Transfer-Encoding'] = 'chunked'
-  }
   if (!uri) {
     return res.end()
   }

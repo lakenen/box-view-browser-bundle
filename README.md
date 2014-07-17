@@ -1,4 +1,4 @@
-# box-view-browser-proxy
+# box-view-browser-bundle
 
 A small module for making box-view API calls in a browser. Don't use this in production -- you should never expose your Box View API token to the client.
 
