@@ -1,13 +1,14 @@
 'use strict';
 
-var http = require('http')
-  , request = require('hyperquest')
-  , url = require('url')
+var browserify = require('browserify')
   , boxview = require('box-view')
-  , browserify = require('browserify')
+  , request = require('request')
   , envify = require('envify/custom')
-  , fs = require('fs')
   , Static = require('node-static').Server
+  , http = require('http')
+  , path = require('path')
+  , url = require('url')
+  , fs = require('fs')
 
 var uploadsURL = process.env.BOX_VIEW_DOCUMENTS_UPLOAD_URL || boxview.DOCUMENTS_UPLOAD_URL
   , documentsURL = process.env.BOX_VIEW_DOCUMENTS_URL || boxview.DOCUMENTS_URL
@@ -15,6 +16,7 @@ var uploadsURL = process.env.BOX_VIEW_DOCUMENTS_UPLOAD_URL || boxview.DOCUMENTS_
 
 module.exports = function (opt) {
   opt = opt || {}
+  opt.cwd = path.resolve(opt.cwd || __dirname)
   if (!opt.port) {
     require('portfinder').getPort(function (err, port) {
       if (err) {
@@ -30,8 +32,8 @@ module.exports = function (opt) {
 
 function init(opt) {
   var b = browserify()
-    , output = fs.createWriteStream('bundle.js')
-    , files = opt.serveStatic && new Static()
+    , output = fs.createWriteStream(path.resolve(opt.cwd, 'bundle.js'))
+    , files = opt.serveStatic && new Static(opt.cwd)
     , baseURL = 'http://localhost:' + opt.port
     , env = {
         API_TOKEN: process.env.BOX_VIEW_API_TOKEN
@@ -43,7 +45,7 @@ function init(opt) {
   b.transform(envify(env))
   b.require(require.resolve('browser-request'), { expose: 'request' })
   b.require(require.resolve('box-view'), { expose: 'node-box-view' })
-  b.require('./browser-box-view.js', { expose: 'box-view' })
+  b.require(require.resolve('./browser-box-view'), { expose: 'box-view' })
   b.bundle().pipe(output)
 
   output.on('finish', createServer)
@@ -51,6 +53,10 @@ function init(opt) {
   function createServer() {
     http.createServer(function (req, res) {
       var path = url.parse(req.url).path
+
+      if (req.method === 'OPTIONS') {
+        return proxy(null, req, res)
+      }
 
       if (path.indexOf('/upload') === 0) {
         proxy(uploadsURL + path.replace('/upload', ''), req, res)
@@ -75,11 +81,14 @@ function init(opt) {
 
 function proxy(uri, req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Headers', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'origin,authorization,accept,content-type')
   res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
   // required for GET/HEAD requests, they otherwise would not pipe properly
   if (req.method === 'GET') {
     req.headers['Transfer-Encoding'] = 'chunked'
+  }
+  if (!uri) {
+    return res.end()
   }
   var r = request(uri, {
       method: req.method
