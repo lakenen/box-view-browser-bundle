@@ -10,29 +10,32 @@ var browserify = require('browserify')
   , url = require('url')
   , fs = require('fs')
 
+var BUNDLE_NAME = 'box-view-browser-bundle.js'
+
 var uploadsURL = process.env.BOX_VIEW_DOCUMENTS_UPLOAD_URL || boxview.DOCUMENTS_UPLOAD_URL
   , documentsURL = process.env.BOX_VIEW_DOCUMENTS_URL || boxview.DOCUMENTS_URL
   , sessionsURL = process.env.BOX_VIEW_SESSIONS_URL || boxview.SESSIONS_URL
 
-module.exports = function (opt) {
+module.exports = function (opt, callback) {
   opt = opt || {}
-  opt.cwd = path.resolve(opt.cwd || __dirname)
+  opt.cwd = path.resolve(opt.cwd || process.cwd())
+  opt.serveStatic = ('serveStatic' in opt) ? opt.serveStatic : true
   if (!opt.port) {
     require('portfinder').getPort(function (err, port) {
       if (err) {
         throw err
       }
       opt.port = port
-      init(opt)
+      init(opt, callback)
     })
   } else {
-    init(opt)
+    init(opt, callback)
   }
 }
 
-function init(opt) {
+function init(opt, callback) {
   var b = browserify()
-    , output = fs.createWriteStream(path.resolve(opt.cwd, 'bundle.js'))
+    , output = fs.createWriteStream(path.resolve(opt.cwd, BUNDLE_NAME))
     , files = opt.serveStatic && new Static(opt.cwd)
     , baseURL = 'http://localhost:' + opt.port
     , env = {
@@ -74,7 +77,9 @@ function init(opt) {
       }
 
     }).listen(opt.port, function () {
-      console.log('listening on %s', opt.port)
+      if (typeof callback === 'function') {
+        callback(opt.port)
+      }
     })
   }
 }
