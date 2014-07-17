@@ -1,0 +1,36 @@
+{
+  "name": "box-view-browser-bundle",
+  "description": "A small module for making box-view API calls in a browser. Don't use this in production -- you should never expose your Box View API token to the client.",
+  "version": "0.0.0",
+  "author": "Cameron Lakenen <cameron@lakenen.com>",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -e 'require(\"./index\")({ serveStatic: true })'"
+  },
+  "dependencies": {
+    "box-view": "^0.1.8",
+    "browser-request": "^0.3.2",
+    "browserify": "^4.2.1",
+    "envify": "^2.0.1",
+    "hyperquest": "^0.3.0",
+    "node-static": "^0.7.3",
+    "portfinder": "^0.2.1",
+    "request": "^2.37.0"
+  },
+  "devDependencies": {
+    "node-static": "^0.7.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lakenen/box-view-browser-bundle.git"
+  },
+  "keywords": [
+    "box-view",
+    "viewer.js"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lakenen/box-view-browser-bundle/issues"
+  },
+  "homepage": "https://github.com/lakenen/box-view-browser-bundle"
+}
