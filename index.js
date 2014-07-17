@@ -4,7 +4,7 @@ var browserify = require('browserify')
   , boxview = require('box-view')
   , request = require('request')
   , envify = require('envify/custom')
-  , Static = require('node-static').Server
+  , send = require('send')
   , http = require('http')
   , path = require('path')
   , url = require('url')
@@ -36,7 +36,6 @@ module.exports = function (opt, callback) {
 function init(opt, callback) {
   var b = browserify()
     , output = fs.createWriteStream(path.resolve(opt.cwd, BUNDLE_NAME))
-    , files = opt.serveStatic && new Static(opt.cwd)
     , baseURL = 'http://localhost:' + opt.port
     , env = {
         API_TOKEN: process.env.BOX_VIEW_API_TOKEN
@@ -69,8 +68,8 @@ function init(opt, callback) {
         proxy(sessionsURL + path.replace('/sessions', ''), req, res)
       } else {
         // serve up static file
-        if (files) {
-          files.serve(req, res)
+        if (opt.serveStatic) {
+          send(req, req.url, { root: opt.cwd }).pipe(res)
         } else {
           res.writeHead(404, { 'content-type': 'text/plain' });
           res.write('not found :(\n');
