@@ -72,7 +72,9 @@ function init(opt, callback) {
         if (files) {
           files.serve(req, res)
         } else {
-          res.end()
+          res.writeHead(404, { 'content-type': 'text/plain' });
+          res.write('not found :(\n');
+          res.end();
         }
       }
 
