@@ -1,6 +1,6 @@
 {
   "name": "box-view-browser-bundle",
-  "description": "A small module for making box-view API calls in a browser. Don't use this in production -- you should never expose your Box View API token to the client.",
+  "description": "A small module for making box-view API calls in a browser.",
   "version": "0.0.2",
   "author": "Cameron Lakenen <cameron@lakenen.com>",
   "main": "index.js",

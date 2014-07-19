@@ -38,8 +38,7 @@ function init(opt, callback) {
     , output = fs.createWriteStream(path.resolve(opt.cwd, BUNDLE_NAME))
     , baseURL = 'http://localhost:' + opt.port
     , env = {
-        API_TOKEN: process.env.BOX_VIEW_API_TOKEN
-      , UPLOAD_URL: baseURL + '/upload'
+        UPLOAD_URL: baseURL + '/upload'
       , DOCUMENTS_URL: baseURL + '/documents'
       , SESSIONS_URL: baseURL + '/sessions'
     }
@@ -60,6 +59,10 @@ function init(opt, callback) {
         return proxy(null, req, res)
       }
 
+      if (opt.token) {
+        req.headers.Authorization = 'Token ' + opt.token
+      }
+
       if (path.indexOf('/upload') === 0) {
         proxy(uploadsURL + path.replace('/upload', ''), req, res)
       } else if (path.indexOf('/documents') === 0) {
@@ -71,9 +74,9 @@ function init(opt, callback) {
         if (opt.serveStatic) {
           send(req, req.url, { root: opt.cwd }).pipe(res)
         } else {
-          res.writeHead(404, { 'content-type': 'text/plain' });
-          res.write('not found :(\n');
-          res.end();
+          res.writeHead(404, { 'content-type': 'text/plain' })
+          res.write('not found :(\n')
+          res.end()
         }
       }
 

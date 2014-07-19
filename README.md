@@ -1,6 +1,8 @@
 # box-view-browser-bundle
 
-A small module for making box-view API calls in a browser. Don't use this in production -- you should never expose your Box View API token to the client.
+A small module for making box-view API calls in a browser.
+
+**Warning** - you shouldn't expose your production Box View API token to the client.
 
 ## Installation
 
@@ -16,9 +18,7 @@ npm install box-view-browser-bundle
 var bvbb = require('box-view-browser-bundle')
 
 bvbb({
-    port: 1234 // default - find an open port
-  , serveStatic: true
-  , cwd: process.cwd()
+    port: 1234
 })
 ```
 
@@ -47,6 +47,10 @@ Serve static files from the directory specified in `options.cwd`. Default: `true
 #### cwd
 
 The working directory to store the bundle and serve static files (if `serveStatic` is enabled). Default `process.cwd()`.
+
+#### token
+
+Optionally specify the Box View token to overwrite the Authorization header that is sent to the View API (this option can be used to avoid exposing the token to the client).
 
 ### callback
 
