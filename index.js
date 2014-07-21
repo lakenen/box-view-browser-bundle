@@ -51,38 +51,39 @@ function init(opt, callback) {
 
   output.on('finish', createServer)
 
-  function createServer() {
-    http.createServer(function (req, res) {
-      var path = url.parse(req.url).path
+  function handle(req, res) {
+    var path = url.parse(req.url).path
 
-      if (req.method === 'OPTIONS') {
-        return proxy(null, req, res)
-      }
+    if (req.method === 'OPTIONS') {
+      return proxy(null, req, res)
+    }
 
-      if (opt.token) {
-        req.headers.Authorization = 'Token ' + opt.token
-      }
+    if (opt.token) {
+      req.headers.Authorization = 'Token ' + opt.token
+    }
 
-      if (path.indexOf('/upload') === 0) {
-        proxy(uploadsURL + path.replace('/upload', ''), req, res)
-      } else if (path.indexOf('/documents') === 0) {
-        proxy(documentsURL + path.replace('/documents', ''), req, res)
-      } else if (path.indexOf('/sessions') === 0) {
-        proxy(sessionsURL + path.replace('/sessions', ''), req, res)
+    if (path.indexOf('/upload') === 0) {
+      proxy(uploadsURL + path.replace('/upload', ''), req, res)
+    } else if (path.indexOf('/documents') === 0) {
+      proxy(documentsURL + path.replace('/documents', ''), req, res)
+    } else if (path.indexOf('/sessions') === 0) {
+      proxy(sessionsURL + path.replace('/sessions', ''), req, res)
+    } else {
+      // serve up static file
+      if (opt.serveStatic) {
+        send(req, req.url, { root: opt.cwd }).pipe(res)
       } else {
-        // serve up static file
-        if (opt.serveStatic) {
-          send(req, req.url, { root: opt.cwd }).pipe(res)
-        } else {
-          res.writeHead(404, { 'content-type': 'text/plain' })
-          res.write('not found :(\n')
-          res.end()
-        }
+        res.writeHead(404, { 'content-type': 'text/plain' })
+        res.write('not found :(\n')
+        res.end()
       }
+    }
+  }
 
-    }).listen(opt.port, function () {
+  function createServer() {
+    var server = http.createServer(handle).listen(opt.port, function () {
       if (typeof callback === 'function') {
-        callback(opt.port)
+        callback(opt.port, server)
       }
     })
   }
