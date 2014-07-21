@@ -62,6 +62,11 @@ function init(opt, callback) {
       req.headers.Authorization = 'Token ' + opt.token
     }
 
+    delete req.headers.host
+    delete req.headers.origin
+    delete req.headers.referer
+    delete req.headers['user-agent']
+
     if (path.indexOf('/upload') === 0) {
       proxy(uploadsURL + path.replace('/upload', ''), req, res)
     } else if (path.indexOf('/documents') === 0) {
