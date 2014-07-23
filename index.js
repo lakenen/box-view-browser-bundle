@@ -46,7 +46,7 @@ function init(opt, callback) {
   b.transform(envify(env))
   b.require(require.resolve('browser-request'), { expose: 'request' })
   b.require(require.resolve('box-view'), { expose: 'node-box-view' })
-  b.require(require.resolve('./browser-box-view'), { expose: 'box-view' })
+  b.require(require.resolve('./browser-box-view'), { expose: opt.expose || 'box-view' })
   b.bundle().pipe(output)
 
   output.on('finish', createServer)

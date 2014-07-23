@@ -52,6 +52,10 @@ The working directory to store the bundle and serve static files (if `serveStati
 
 Optionally specify the Box View token to overwrite the Authorization header that is sent to the View API (this option can be used to avoid exposing the token to the client).
 
+#### expose
+
+Optionally specify the Box View module name to expose in the bundle. Default: `'box-view'`.
+
 ### callback
 
 Callback function to call when the bundle has been compiled and server has started.
