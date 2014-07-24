@@ -20,6 +20,7 @@ module.exports = function (opt, callback) {
   opt = opt || {}
   opt.cwd = path.resolve(opt.cwd || process.cwd())
   opt.serveStatic = ('serveStatic' in opt) ? opt.serveStatic : true
+
   if (!opt.port) {
     require('portfinder').getPort(function (err, port) {
       if (err) {
@@ -32,10 +33,18 @@ module.exports = function (opt, callback) {
     init(opt, callback)
   }
 }
+module.exports.bundle = bundleScripts
 
 function init(opt, callback) {
-  var b = browserify()
-    , output = fs.createWriteStream(path.resolve(opt.cwd, BUNDLE_NAME))
+  bundleScripts(opt, createServer.bind(null, opt, callback))
+}
+
+function bundleScripts(opt, callback) {
+  opt.output = ('output' in opt) ? opt.output : true
+  opt.bundler = opt.bundler || bundler
+
+  var bundle
+    , output
     , baseURL = 'http://localhost:' + opt.port
     , env = {
         UPLOAD_URL: baseURL + '/upload'
@@ -43,15 +52,44 @@ function init(opt, callback) {
       , SESSIONS_URL: baseURL + '/sessions'
     }
 
-  b.transform(envify(env))
-  b.require(require.resolve('browser-request'), { expose: 'request' })
-  b.require(require.resolve('box-view'), { expose: 'node-box-view' })
-  b.require(require.resolve('./browser-box-view'), { expose: opt.expose || 'box-view' })
-  b.bundle().pipe(output)
+  if (opt.output !== false) {
+    if (opt.output === true) {
+      opt.output = path.resolve(opt.cwd, BUNDLE_NAME)
+    }
+    if (typeof opt.output === 'string') {
+      output = fs.createWriteStream(opt.output)
+    } else if (opt.output.writable) {
+      output = opt.output
+    }
+  }
 
-  output.on('finish', createServer)
+  bundle = opt.bundler(function (b) {
+    b.transform(envify(env))
+    b.require(require.resolve('browser-request'), { expose: 'request' })
+    b.require(require.resolve('box-view'), { expose: 'node-box-view' })
+    b.require(require.resolve(__dirname + '/browser-box-view'), { expose: opt.expose || 'box-view' })
+  })
 
-  function handle(req, res) {
+  if (output && bundle) {
+    bundle.pipe(output)
+    output.on('finish', callback)
+  }
+}
+
+function bundler(fn) {
+  var b = browserify()
+  fn(b)
+  return b.bundle()
+}
+
+function createServer(opt, callback) {
+  var server = http.createServer(handleRequest).listen(opt.port, function () {
+    if (typeof callback === 'function') {
+      callback(opt.port, server)
+    }
+  })
+
+  function handleRequest(req, res) {
     var path = url.parse(req.url).path
 
     if (req.method === 'OPTIONS') {
@@ -83,14 +121,6 @@ function init(opt, callback) {
         res.end()
       }
     }
-  }
-
-  function createServer() {
-    var server = http.createServer(handle).listen(opt.port, function () {
-      if (typeof callback === 'function') {
-        callback(opt.port, server)
-      }
-    })
   }
 }
 

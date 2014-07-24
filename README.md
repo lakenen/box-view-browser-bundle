@@ -56,6 +56,23 @@ Optionally specify the Box View token to overwrite the Authorization header that
 
 Optionally specify the Box View module name to expose in the bundle. Default: `'box-view'`.
 
+#### bundler
+
+Optionally specify a function that accepts a function as an argument, which should be passed an instance of some browserify-like object, and returns a stream (if options.output !== false).
+
+Default:
+```js
+function bundler(fn) {
+  var b = browserify()
+  fn(b)
+  return b.bundle()
+}
+```
+
+#### output
+
+Specify an output filename or stream to write the bundle to. Default: `opt.cwd + '/box-view-browser-bundle.js'`.
+
 ### callback
 
 Callback function to call when the bundle has been compiled and server has started.
