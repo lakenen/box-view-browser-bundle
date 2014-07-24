@@ -19,13 +19,14 @@ var bvbb = require('box-view-browser-bundle')
 
 bvbb({
     port: 1234
+  , token: process.env.BOX_VIEW_API_TOKEN
 })
 ```
 
 ```html
 <script src="box-view-browser-bundle.js"></script>
 <script>
-  var client = require('box-view')
+  var client = require('box-view').createClient()
   client.documents.list(function (err, res) {
     console.log(res)
   })
