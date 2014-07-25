@@ -45,6 +45,10 @@ The port on which to serve the proxy (and optionally static files). Default: aut
 
 Serve static files from the directory specified in `options.cwd`. Default: `true`.
 
+#### serve
+
+Start a proxy server to route requests to the View API. Default: `true`. If `false`, the callback function will be called with a route (i.e., `function (req, res) {...}`) that can be used to serve the proxy through any node http/s server.
+
 #### cwd
 
 The working directory to store the bundle and serve static files (if `serveStatic` is enabled). Default `process.cwd()`.
@@ -73,6 +77,10 @@ function bundler(fn) {
 #### output
 
 Specify an output filename or stream to write the bundle to. Default: `opt.cwd + '/box-view-browser-bundle.js'`.
+
+#### url
+
+Specify the base url to point the box-view client at (as a proxy to the View API). Specifying `url` when `serve`/`serveStatic` are `false` will cause the `port` option to be ignored. Default: 'http://localhost:' + `port`
 
 ### callback
 

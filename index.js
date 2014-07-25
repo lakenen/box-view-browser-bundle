@@ -20,24 +20,28 @@ module.exports = function (opt, callback) {
   opt = opt || {}
   opt.cwd = path.resolve(opt.cwd || process.cwd())
   opt.serveStatic = ('serveStatic' in opt) ? opt.serveStatic : true
+  opt.serve = opt.serve || true
 
-  if (!opt.port) {
-    require('portfinder').getPort(function (err, port) {
-      if (err) {
-        throw err
-      }
-      opt.port = port
-      init(opt, callback)
-    })
+  if (opt.serve || opt.serveStatic) {
+    if (!opt.port || !opt.url) {
+      require('portfinder').getPort(function (err, port) {
+        if (err) {
+          throw err
+        }
+        opt.port = port
+        bundleScripts(opt, createServer.bind(null, opt, callback))
+      })
+    } else {
+      bundleScripts(opt, createServer.bind(null, opt, callback))
+    }
   } else {
-    init(opt, callback)
+    bundleScripts(opt, function () {
+      callback(createHandler(opt))
+    })
   }
 }
 module.exports.bundle = bundleScripts
-
-function init(opt, callback) {
-  bundleScripts(opt, createServer.bind(null, opt, callback))
-}
+module.exports.createHandler = createHandler
 
 function bundleScripts(opt, callback) {
   opt.output = ('output' in opt) ? opt.output : true
@@ -45,7 +49,7 @@ function bundleScripts(opt, callback) {
 
   var bundle
     , output
-    , baseURL = 'http://localhost:' + opt.port
+    , baseURL = opt.url || 'http://localhost:' + opt.port
     , env = {
         UPLOAD_URL: baseURL + '/upload'
       , DOCUMENTS_URL: baseURL + '/documents'
@@ -65,7 +69,6 @@ function bundleScripts(opt, callback) {
 
   bundle = opt.bundler(function (b) {
     b.transform(envify(env))
-    b.require(require.resolve('browser-request'), { expose: 'request' })
     b.require(require.resolve('box-view'), { expose: 'node-box-view' })
     b.require(require.resolve(__dirname + '/browser-box-view'), { expose: opt.expose || 'box-view' })
   })
@@ -83,13 +86,20 @@ function bundler(fn) {
 }
 
 function createServer(opt, callback) {
-  var server = http.createServer(handleRequest).listen(opt.port, function () {
+  var handler = createHandler(opt)
+  var server = http.createServer(handler).listen(opt.port, function () {
     if (typeof callback === 'function') {
       callback(opt.port, server)
     }
   })
+}
 
-  function handleRequest(req, res) {
+function createHandler(opt) {
+  var base = opt.url ? url.parse(opt.url).path : ''
+    , upload  = base + '/upload'
+    , documents = base + '/documents'
+    , sessions = base + '/sessions'
+  return function handleRequest(req, res) {
     var path = url.parse(req.url).path
 
     if (req.method === 'OPTIONS') {
@@ -97,7 +107,7 @@ function createServer(opt, callback) {
     }
 
     if (opt.token) {
-      req.headers.Authorization = 'Token ' + opt.token
+      req.headers.authorization = 'token ' + opt.token
     }
 
     delete req.headers.host
@@ -105,12 +115,12 @@ function createServer(opt, callback) {
     delete req.headers.referer
     delete req.headers['user-agent']
 
-    if (path.indexOf('/upload') === 0) {
-      proxy(uploadsURL + path.replace('/upload', ''), req, res)
-    } else if (path.indexOf('/documents') === 0) {
-      proxy(documentsURL + path.replace('/documents', ''), req, res)
-    } else if (path.indexOf('/sessions') === 0) {
-      proxy(sessionsURL + path.replace('/sessions', ''), req, res)
+    if (path.indexOf(upload) === 0) {
+      proxy(uploadsURL + path.replace(upload, ''), req, res)
+    } else if (path.indexOf(documents) === 0) {
+      proxy(documentsURL + path.replace(documents, ''), req, res)
+    } else if (path.indexOf(sessions) === 0) {
+      proxy(sessionsURL + path.replace(sessions, ''), req, res)
     } else {
       // serve up static file
       if (opt.serveStatic) {

@@ -6,11 +6,10 @@
   "main": "index.js",
   "dependencies": {
     "box-view": "^0.1.8",
-    "browser-request": "^0.3.2",
     "browserify": "^4.2.1",
     "envify": "^2.0.1",
     "portfinder": "^0.2.1",
-    "request": "^2.37.0",
+    "request": "^2.39.0",
     "send": "^0.6.0"
   },
   "repository": {
