@@ -145,9 +145,15 @@ function proxy(uri, req, res) {
       method: req.method
     , headers: req.headers
   })
-  req.pipe(r).pipe(res)
-  r.on('error', function (err) {
+  try {
+    req.pipe(r).pipe(res)
+    r.on('error', function (err) {
+      console.error(err)
+      res.writeHead(500)
+      res.end()
+    })
+  } catch (err) {
     console.error(err)
-  })
+  }
 }
 
