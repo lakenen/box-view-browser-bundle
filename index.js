@@ -144,16 +144,18 @@ function proxy(uri, req, res) {
   var r = request(uri, {
       method: req.method
     , headers: req.headers
+    , timeout: 30000
   })
-  try {
-    req.pipe(r).pipe(res)
-    r.on('error', function (err) {
-      console.error(err)
+
+  function onerror(err) {
+    console.error(err)
+    try {
       res.writeHead(500)
       res.end()
-    })
-  } catch (err) {
-    console.error(err)
+    } catch (err) {}
   }
+
+  req.pipe(r).pipe(res)
+  r.on('error', onerror)
 }
 
