@@ -4,6 +4,7 @@ var browserify = require('browserify')
   , boxview = require('box-view')
   , request = require('request')
   , envify = require('envify/custom')
+  , extend = require('extend')
   , send = require('send')
   , http = require('http')
   , path = require('path')
@@ -114,6 +115,8 @@ function createHandler(opt) {
     delete req.headers.origin
     delete req.headers.referer
     delete req.headers['user-agent']
+
+    extend(req.headers, opt.headers || {})
 
     if (path.indexOf(upload) === 0) {
       proxy(uploadsURL + path.replace(upload, ''), req, res)
